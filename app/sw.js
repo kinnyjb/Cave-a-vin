@@ -1,4 +1,4 @@
-const CACHE='cave-v6';
+const CACHE='cave-v8';
 const CORE=['./','./index.html','./manifest.webmanifest','./icon-180.png','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)));self.skipWaiting()});
 // on ne touche QU'AUX caches de l'appli Cave : celles des autres appli's ne nous regardent pas
