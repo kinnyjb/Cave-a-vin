@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Lanceur Cave — macOS / Linux.   Usage :  ./lancer bouteille | accord | appli
+set -e
+ICI="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+for PY in python3 python; do
+  if command -v "$PY" >/dev/null 2>&1; then
+    exec "$PY" "$ICI/cave.py" "$@"
+  fi
+done
+
+echo "❌ Python introuvable."
+echo "   Installe les outils de développement :  xcode-select --install"
+exit 1

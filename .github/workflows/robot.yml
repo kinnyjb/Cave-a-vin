@@ -1,0 +1,71 @@
+name: Robot Cave
+
+# Deux usages :
+#   - à chaque push sur main : reconstruit l'appli et la met en ligne
+#   - à la demande (depuis l'appli) : ajoute/modifie/supprime une bouteille
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "bouteille (cave commune)"
+        required: true
+        default: bouteille
+        type: choice
+        options: [bouteille]
+      bouteille:
+        description: "Bouteille au format JSON (uniquement pour bouteille)"
+        required: false
+        type: string
+
+permissions:
+  contents: write      # le robot enregistre les nouvelles bouteilles
+
+concurrency:
+  group: robot-cave
+  cancel-in-progress: false
+
+jobs:
+  robot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Dépendances
+        run: pip install -q -r requirements.txt
+
+      - name: Bouteille envoyee depuis l'appli
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.action == 'bouteille' && inputs.bouteille != '' }}
+        env:
+          BOUTEILLE: ${{ inputs.bouteille }}
+        run: |
+          printf '%s' "$BOUTEILLE" > /tmp/bouteille.json
+          python tools/ajouter_bouteille.py --fichier /tmp/bouteille.json
+
+      - name: Construction de l'appli
+        run: python tools/build_appli.py
+
+      - name: Mise en ligne de l'appli
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          # le projet Pages n'existe qu'une fois : la creation echoue sans casser la suite
+          npx --yes wrangler@3 pages project create cave-appli --production-branch=main || echo "projet deja existant"
+          # wrangler cherche le dossier functions/ dans le repertoire courant :
+          # il faut donc se placer DANS le dossier de l'appli avant de publier
+          cd "app"
+          npx --yes wrangler@3 pages deploy . --project-name=cave-appli --branch=main --commit-dirty=true
+
+      - name: Enregistrer les nouvelles donnees
+        run: |
+          git config user.name "Robot Cave"
+          git config user.email "robot@cave.local"
+          git add -A
+          git diff --quiet --cached || git commit -m "Robot : bouteille $(date -u +%d/%m %H:%M)"
+          git push

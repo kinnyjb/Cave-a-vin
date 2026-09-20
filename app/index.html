@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Cave">
+<meta name="theme-color" content="#F3ECE7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#171012" media="(prefers-color-scheme: dark)">
+<title>Cave à vin</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>
+:root{
+  --paper:#F3ECE7; --card:#FFFFFF; --sunk:#EAE0D8; --ink:#2E211F; --muted:#8C7A72;
+  --line:#E0D3C8; --accent:#7A2E3A; --accent-soft:#F1DEE1; --on-accent:#FFFFFF;
+  --ambre:#A87516; --ambre-soft:#F7EBD2;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,"Helvetica Neue",sans-serif;
+  --ombre:0 1px 2px rgba(46,33,31,.08), 0 6px 16px rgba(46,33,31,.06);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#171012; --card:#241A1D; --sunk:#120C0E; --ink:#EDE3DF; --muted:#A6928C;
+  --line:#3A2A2E; --accent:#C1596A; --accent-soft:#3A1F24; --on-accent:#1A0E10;
+  --ambre:#D5A544; --ambre-soft:#2F2413;
+  --ombre:0 1px 2px rgba(0,0,0,.35), 0 6px 16px rgba(0,0,0,.25);
+}}
+:root[data-theme="dark"]{
+  --paper:#171012; --card:#241A1D; --sunk:#120C0E; --ink:#EDE3DF; --muted:#A6928C;
+  --line:#3A2A2E; --accent:#C1596A; --accent-soft:#3A1F24; --on-accent:#1A0E10;
+  --ambre:#D5A544; --ambre-soft:#2F2413;
+  --ombre:0 1px 2px rgba(0,0,0,.35), 0 6px 16px rgba(0,0,0,.25);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--paper);color:var(--ink)}
+body{margin:0;font-family:var(--sans);font-size:16px;line-height:1.5;
+     padding-inline:16px;padding-block:calc(env(safe-area-inset-top) + 12px) 48px;
+     -webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}[hidden]{display:none!important}
+.wrap{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+  outline:2.5px solid var(--accent);outline-offset:2px;border-radius:6px}
+.tn{font-variant-numeric:tabular-nums}
+
+header{padding-top:4px}
+.titre{font-family:var(--serif);font-size:34px;font-weight:600;letter-spacing:-.01em;margin:0;line-height:1}
+.titre em{font-style:italic;color:var(--accent)}
+.sous{font-size:13px;color:var(--muted);margin:3px 0 0}
+
+.onglets{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-bottom:1.5px solid var(--line)}
+.onglets button{padding:11px 1px 12px;font-size:14px;font-weight:600;color:var(--muted);
+  border-bottom:2.5px solid transparent;margin-bottom:-1.5px;transition:color .15s}
+.onglets button[aria-pressed="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+
+.vue{display:flex;flex-direction:column;gap:18px}
+.carte{background:var(--card);border-radius:14px;padding:18px;box-shadow:var(--ombre);
+  display:flex;flex-direction:column;gap:14px}
+.lbl{font-family:var(--serif);font-size:13px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted);margin:0}
+.aide{font-size:13.5px;color:var(--muted);line-height:1.5;margin:0}
+
+.chercher{position:relative}
+.chercher input{width:100%;font:inherit;font-size:16px;padding:12px 14px 12px 40px;border-radius:11px;
+  border:1.5px solid var(--line);background:var(--card);color:var(--ink)}
+.chercher::before{content:"⌕";position:absolute;left:14px;top:50%;transform:translateY(-52%);
+  font-size:20px;color:var(--muted);pointer-events:none}
+
+.filtres{display:flex;gap:7px;overflow-x:auto;padding:2px 0;scrollbar-width:none}
+.filtres::-webkit-scrollbar{display:none}
+.filtres button{flex:none;font-size:13.5px;font-weight:600;padding:7px 13px;border-radius:99px;
+  background:var(--card);border:1.5px solid var(--line);color:var(--muted);white-space:nowrap}
+.filtres button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+
+.grille{display:flex;flex-direction:column;gap:12px}
+.bout{background:var(--card);border-radius:14px;box-shadow:var(--ombre);padding:14px 16px;
+  display:flex;flex-direction:column;gap:6px;text-align:left;width:100%}
+.bout-tete{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.bout-nom{font-family:var(--serif);font-size:18px;font-weight:600;line-height:1.2}
+.bout-meta{font-size:13px;color:var(--muted)}
+.bout-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
+.tag{font-size:11px;font-weight:600;padding:2.5px 8px;border-radius:99px;
+  background:var(--sunk);color:var(--muted);white-space:nowrap}
+.tag.couleur-rouge{background:#F1DEE1;color:#7A2E3A}
+.tag.couleur-blanc{background:#F6F0DB;color:#8A7418}
+.tag.couleur-rose{background:#FBE3E8;color:#B45671}
+.tag.couleur-effervescent{background:#E6F0EC;color:#3F7A5C}
+.tag.couleur-doux{background:#F1E4D2;color:#96631E}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tag.couleur-rouge{background:#3A1F24;color:#E39AA8}
+  :root:not([data-theme="light"]) .tag.couleur-blanc{background:#332C14;color:#E3CD7A}
+  :root:not([data-theme="light"]) .tag.couleur-rose{background:#3A2129;color:#EDA6BA}
+  :root:not([data-theme="light"]) .tag.couleur-effervescent{background:#17281F;color:#8FC7A9}
+  :root:not([data-theme="light"]) .tag.couleur-doux{background:#332616;color:#E0AE5E}}
+.qte{font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px;background:var(--sunk);
+  color:var(--muted);white-space:nowrap;flex:none}
+.qte.vide{background:var(--ambre-soft);color:var(--ambre)}
+
+.retour{align-self:flex-start;font-size:14.5px;font-weight:600;color:var(--accent);padding:2px 0}
+.det-titre{font-family:var(--serif);font-size:26px;font-weight:600;line-height:1.15;margin:0}
+.det-meta{font-size:13.5px;color:var(--muted);margin:5px 0 0}
+.det-chiffres{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:8px}
+.det-chiffres div{background:var(--sunk);border-radius:10px;padding:9px 10px}
+.det-chiffres b{display:block;font-family:var(--serif);font-size:16px;font-weight:600}
+.det-chiffres span{font-size:11.5px;color:var(--muted)}
+.note{font-size:14.5px;line-height:1.55;padding:13px 15px;border-radius:11px;
+  background:var(--ambre-soft);color:var(--ink);border-left:3px solid var(--ambre);margin:0;
+  white-space:pre-wrap}
+.det-actions{display:flex;gap:9px;flex-wrap:wrap}
+
+.btn{display:block;width:100%;text-align:center;padding:14px;border-radius:12px;
+  background:var(--accent);color:var(--on-accent);font-size:16px;font-weight:600}
+.btn.doux{background:var(--card);color:var(--accent);border:1.5px solid var(--line)}
+.btn.petit{padding:10px 14px;font-size:14.5px;width:auto;display:inline-block}
+.btn.rouge{background:var(--card);color:var(--accent);border:1.5px solid var(--accent)}
+.btn.rouge[data-sur="1"]{background:var(--accent);color:var(--on-accent)}
+.btns{display:flex;gap:9px;flex-wrap:wrap}
+
+.ings-choix{display:flex;flex-wrap:wrap;gap:6px}
+.ings-choix button{font-size:13.5px;font-weight:600;padding:7px 12px;border-radius:99px;
+  background:var(--sunk);color:var(--muted);border:1.5px solid transparent;white-space:nowrap}
+.ings-choix button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+
+.resultat{display:flex;flex-direction:column;gap:12px}
+.resultat-tete{font-size:14px;color:var(--muted)}
+.resultat-tete b{color:var(--ink)}
+.rang{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:14px;
+  box-shadow:var(--ombre);padding:12px 14px}
+.rang .n{font-family:var(--serif);font-size:19px;font-weight:700;color:var(--accent);
+  width:26px;flex:none;text-align:center}
+.rang .corps{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.rang .nom{font-family:var(--serif);font-size:16.5px;font-weight:600}
+.rang .meta{font-size:12.5px;color:var(--muted)}
+
+.ch{display:flex;flex-direction:column;gap:7px}
+.ch label{font-size:13.5px;font-weight:600;color:var(--muted)}
+.ch input,.ch select,.ch textarea{font:inherit;font-size:16px;padding:11px 13px;border-radius:11px;
+  border:1.5px solid var(--line);background:var(--card);color:var(--ink);width:100%}
+.ch textarea{min-height:88px;line-height:1.55;font-family:var(--sans)}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.couleurs{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;background:var(--sunk);
+  border-radius:12px;padding:5px}
+.couleurs button{padding:9px 0;border-radius:9px;font-size:12px;font-weight:600;color:var(--muted)}
+.couleurs button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.msg{margin:0;font-size:14px;font-weight:600;color:#3F7A5C}
+.msg.ko{color:var(--accent)}
+.vide{text-align:center;color:var(--muted);font-size:15px;padding:34px 12px;line-height:1.6}
+.vide .gros{font-size:34px;display:block;margin-bottom:10px;opacity:.55}
+.bandeau{font-size:13.5px;line-height:1.5;margin:0;padding:11px 13px;border-radius:11px;
+  background:var(--ambre-soft);color:var(--ink);font-weight:500;border-left:3px solid var(--ambre)}
+.bandeau b{font-family:var(--serif)}
+.bandeau button{color:var(--accent);font-weight:600;text-decoration:underline;margin-left:4px}
+footer{font-size:12px;color:var(--muted);text-align:center;line-height:1.6;padding-top:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 class="titre">Cave <em>à vin</em></h1>
+    <p class="sous" id="sous-titre">le carnet de la maison</p>
+    <nav class="onglets" id="onglets">
+      <button data-vue="cave" aria-pressed="true">Cave</button>
+      <button data-vue="accord" aria-pressed="false">Accord</button>
+      <button data-vue="ajout" aria-pressed="false">Ajouter</button>
+    </nav>
+  </header>
+
+  <section class="vue" id="vCave">
+    <div class="chercher"><input id="qCave" placeholder="Chercher un nom, un cépage, une région…"></div>
+    <div class="filtres" id="filtresCouleur"></div>
+    <div class="grille" id="grille"></div>
+  </section>
+
+  <section class="vue" id="vDetail" hidden>
+    <button type="button" class="retour" id="retour">‹ La cave</button>
+    <div class="carte" id="detCorps"></div>
+  </section>
+
+  <section class="vue" id="vAccord" hidden>
+    <div class="carte">
+      <p class="lbl">Qu'est-ce qu'on mange ?</p>
+      <div class="chercher"><input id="platTexte" placeholder="ex. gigot d'agneau, fromage de chèvre…"></div>
+      <div class="ings-choix" id="platsRapides"></div>
+      <button type="button" class="btn" id="btnAccord">Proposer une bouteille</button>
+    </div>
+    <div id="resultatAccord"></div>
+  </section>
+
+  <section class="vue" id="vAjout" hidden>
+    <div class="bandeau" id="aBandeau" hidden></div>
+    <form class="carte" id="formBouteille">
+      <p class="lbl" id="aTitre">Une nouvelle bouteille</p>
+      <p class="aide" id="aIntro">Elle rejoint la cave commune : elle apparaîtra sur l'autre téléphone d'ici 2 à 3 minutes.</p>
+
+      <div class="ch"><label for="aNom">Nom</label>
+        <input id="aNom" placeholder="Château Truc"></div>
+
+      <div class="duo">
+        <div class="ch"><label for="aProducteur">Producteur</label><input id="aProducteur"></div>
+        <div class="ch"><label for="aMillesime">Millésime</label><input id="aMillesime" inputmode="numeric" placeholder="2018"></div>
+      </div>
+
+      <div class="ch"><label>Couleur</label>
+        <div class="couleurs" id="aCouleur">
+          <button type="button" data-couleur="rouge" aria-pressed="true">Rouge</button>
+          <button type="button" data-couleur="blanc" aria-pressed="false">Blanc</button>
+          <button type="button" data-couleur="rose" aria-pressed="false">Rosé</button>
+          <button type="button" data-couleur="effervescent" aria-pressed="false">Bulles</button>
+          <button type="button" data-couleur="doux" aria-pressed="false">Doux</button>
+        </div>
+      </div>
+
+      <div class="duo">
+        <div class="ch"><label for="aRegion">Région</label><input id="aRegion" placeholder="Bordeaux"></div>
+        <div class="ch"><label for="aPays">Pays</label><input id="aPays" placeholder="France"></div>
+      </div>
+
+      <div class="ch"><label for="aCepages">Cépages</label>
+        <input id="aCepages" placeholder="merlot, cabernet-sauvignon">
+      </div>
+
+      <div class="duo">
+        <div class="ch"><label for="aQuantite">Bouteilles en cave</label>
+          <input id="aQuantite" inputmode="numeric" placeholder="1"></div>
+        <div class="ch"><label for="aPrix">Prix (€, facultatif)</label>
+          <input id="aPrix" inputmode="decimal"></div>
+      </div>
+
+      <div class="ch"><label for="aGarde">À boire d'ici (facultatif)</label>
+        <input id="aGarde" placeholder="2028"></div>
+
+      <div class="ch"><label for="aNote">Note de dégustation (facultatif)</label>
+        <textarea id="aNote" placeholder="Où on l'a trouvée, ce qu'on en a pensé, avec quoi la servir…"></textarea></div>
+
+      <div class="ch"><label for="aQui" id="aQuiLbl">Ajoutée par</label><input id="aQui" placeholder="ton prénom"></div>
+
+      <p class="msg" id="aMsg"></p>
+      <button type="submit" class="btn" id="aEnvoyer">Ajouter à la cave</button>
+    </form>
+
+    <div class="carte danger" id="aZoneSupp" hidden>
+      <p class="lbl">Retirer de la cave</p>
+      <p class="aide">Si la bouteille a été cassée, offerte, ou ajoutée par erreur.</p>
+      <button type="button" class="btn rouge" id="aSupprimer">Supprimer cette bouteille</button>
+      <p class="msg" id="aSuppMsg"></p>
+    </div>
+  </section>
+
+  <footer><span id="pied"></span></footer>
+</div>
+
+<script>
+const BOUTEILLES = [];      /* la cave de la maison */
+const ACCORDS = {
+ "cepages": {
+  "cabernet-sauvignon": {"couleur": "rouge", "puissance": 4},
+  "cabernet-franc": {"couleur": "rouge", "puissance": 3},
+  "merlot": {"couleur": "rouge", "puissance": 3},
+  "pinot-noir": {"couleur": "rouge", "puissance": 2},
+  "syrah": {"couleur": "rouge", "puissance": 4},
+  "shiraz": {"couleur": "rouge", "puissance": 4},
+  "grenache": {"couleur": "rouge", "puissance": 3},
+  "mourvedre": {"couleur": "rouge", "puissance": 4},
+  "gamay": {"couleur": "rouge", "puissance": 1},
+  "sangiovese": {"couleur": "rouge", "puissance": 3},
+  "tempranillo": {"couleur": "rouge", "puissance": 3},
+  "nebbiolo": {"couleur": "rouge", "puissance": 4},
+  "malbec": {"couleur": "rouge", "puissance": 4},
+  "zinfandel": {"couleur": "rouge", "puissance": 4},
+  "carignan": {"couleur": "rouge", "puissance": 3},
+  "chardonnay": {"couleur": "blanc", "puissance": 3},
+  "sauvignon-blanc": {"couleur": "blanc", "puissance": 2},
+  "chenin": {"couleur": "blanc", "puissance": 2},
+  "riesling": {"couleur": "blanc", "puissance": 2},
+  "viognier": {"couleur": "blanc", "puissance": 3},
+  "gewurztraminer": {"couleur": "blanc", "puissance": 3},
+  "pinot-gris": {"couleur": "blanc", "puissance": 2},
+  "pinot-blanc": {"couleur": "blanc", "puissance": 2},
+  "chasselas": {"couleur": "blanc", "puissance": 1},
+  "grenache-blanc": {"couleur": "blanc", "puissance": 3},
+  "marsanne": {"couleur": "blanc", "puissance": 3},
+  "roussanne": {"couleur": "blanc", "puissance": 3},
+  "vermentino": {"couleur": "blanc", "puissance": 2},
+  "melon-de-bourgogne": {"couleur": "blanc", "puissance": 1},
+  "cinsault": {"couleur": "rose", "puissance": 1},
+  "chardonnay-effervescent": {"couleur": "effervescent", "puissance": 1}
+ },
+ "plats": {
+  "boeuf grille": {"couleur": ["rouge"], "puissance": 4},
+  "boeuf bourguignon": {"couleur": ["rouge"], "puissance": 4},
+  "cote de boeuf": {"couleur": ["rouge"], "puissance": 4},
+  "agneau": {"couleur": ["rouge"], "puissance": 4},
+  "gigot d'agneau": {"couleur": ["rouge"], "puissance": 4},
+  "gibier": {"couleur": ["rouge"], "puissance": 5},
+  "canard": {"couleur": ["rouge"], "puissance": 3},
+  "magret de canard": {"couleur": ["rouge"], "puissance": 3},
+  "porc roti": {"couleur": ["rouge", "blanc"], "puissance": 2},
+  "volaille rotie": {"couleur": ["rouge", "blanc"], "puissance": 2},
+  "poulet roti": {"couleur": ["rouge", "blanc"], "puissance": 2},
+  "charcuterie": {"couleur": ["rouge", "rose"], "puissance": 2},
+  "fromage a pate dure": {"couleur": ["rouge"], "puissance": 3},
+  "comte": {"couleur": ["blanc", "rouge"], "puissance": 3},
+  "fromage de chevre": {"couleur": ["blanc"], "puissance": 2},
+  "fromage bleu": {"couleur": ["doux"], "puissance": 3},
+  "raclette": {"couleur": ["blanc"], "puissance": 2},
+  "fondue savoyarde": {"couleur": ["blanc"], "puissance": 2},
+  "poisson grille": {"couleur": ["blanc"], "puissance": 2},
+  "poisson en sauce": {"couleur": ["blanc"], "puissance": 3},
+  "saumon": {"couleur": ["blanc", "rose"], "puissance": 2},
+  "coquillages": {"couleur": ["blanc", "effervescent"], "puissance": 1},
+  "huitres": {"couleur": ["blanc", "effervescent"], "puissance": 1},
+  "sushi": {"couleur": ["blanc", "effervescent"], "puissance": 1},
+  "salade": {"couleur": ["blanc", "rose"], "puissance": 1},
+  "legumes grilles": {"couleur": ["rose", "blanc"], "puissance": 1},
+  "quiche": {"couleur": ["blanc", "rose"], "puissance": 2},
+  "curry epice": {"couleur": ["blanc", "doux"], "puissance": 2},
+  "cuisine asiatique epicee": {"couleur": ["blanc", "doux"], "puissance": 2},
+  "apero": {"couleur": ["effervescent", "blanc"], "puissance": 1},
+  "dessert au chocolat": {"couleur": ["doux", "rouge"], "puissance": 3},
+  "dessert aux fruits": {"couleur": ["doux", "effervescent"], "puissance": 1},
+  "tarte aux pommes": {"couleur": ["doux", "effervescent"], "puissance": 1},
+  "foie gras": {"couleur": ["doux", "effervescent"], "puissance": 2},
+  "pates a la tomate": {"couleur": ["rouge"], "puissance": 2},
+  "pates a la carbonara": {"couleur": ["blanc", "rouge"], "puissance": 2},
+  "pizza": {"couleur": ["rouge", "rose"], "puissance": 2},
+  "risotto aux champignons": {"couleur": ["rouge", "blanc"], "puissance": 2},
+  "burger": {"couleur": ["rouge"], "puissance": 3}
+ }
+}
+;
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store={get(k,d){try{const v=localStorage.getItem('cave:'+k);return v?JSON.parse(v):d}catch(e){return d}},
+             set(k,v){try{localStorage.setItem('cave:'+k,JSON.stringify(v))}catch(e){}}};
+const sansAccent=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
+
+const COULEURS={rouge:'Rouge',blanc:'Blanc',rose:'Rosé',effervescent:'Bulles',doux:'Doux'};
+const PUISSANCE_DEFAUT={rouge:3,blanc:2,rose:1,effervescent:1,doux:2};
+
+/* ═══════════ la cave : liste, courante en mémoire ═══════════ */
+let CAVE=BOUTEILLES.slice();
+const trouver=id=>CAVE.find(b=>b.id===id);
+
+function slug(s){
+  return sansAccent(s).replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60)||'bouteille';
+}
+
+function total(){return CAVE.reduce((n,b)=>n+(b.quantite||0),0)}
+function majSousTitre(){
+  const n=total();
+  $('sous-titre').textContent=n?`${n} bouteille${n>1?'s':''} en cave · ${CAVE.length} référence${CAVE.length>1?'s':''}`
+    :(CAVE.length?`${CAVE.length} référence${CAVE.length>1?'s':''}, plus rien en stock`:`la cave est vide pour l'instant`);
+}
+
+/* ═══════════ navigation ═══════════ */
+let VUE='cave', OUVERT=null, EDITION=null;
+function setVue(v){
+  VUE=v;
+  const M={cave:'vCave',detail:'vDetail',accord:'vAccord',ajout:'vAjout'};
+  for(const [k,el] of Object.entries(M))$(el).hidden=(k!==v);
+  document.querySelectorAll('#onglets button').forEach(b=>
+    b.setAttribute('aria-pressed',String(b.dataset.vue===(v==='detail'?'cave':v))));
+  if(v==='cave')rendreCave();
+  if(v==='detail')rendreDetail();
+  if(v==='accord')rendreAccord();
+  if(v==='ajout')rendreAjout();
+  window.scrollTo(0,0);
+}
+
+/* ═══════════ liste de la cave ═══════════ */
+let FILTRE_COULEUR=null;   /* null = toutes les couleurs */
+function tagsCouleur(){
+  const chips=['<button type="button" data-fc="" aria-pressed="'+(!FILTRE_COULEUR)+'">Toutes</button>']
+    .concat(Object.entries(COULEURS).map(([k,l])=>
+      `<button type="button" data-fc="${k}" aria-pressed="${FILTRE_COULEUR===k}">${esc(l)}</button>`));
+  $('filtresCouleur').innerHTML=chips.join('');
+}
+function metaBouteille(b){
+  const m=[b.producteur,b.millesime,b.region].filter(Boolean);
+  return m.join(' · ');
+}
+function carteBouteille(b){
+  const cepages=(b.cepages||[]).slice(0,3).map(c=>`<span class="tag">${esc(c)}</span>`).join('');
+  const qte=b.quantite>0?`${b.quantite} en cave`:'plus en cave';
+  return `<button type="button" class="bout" data-ouvrir="${esc(b.id)}">
+    <div class="bout-tete">
+      <span class="bout-nom">${esc(b.nom)}</span>
+      <span class="qte${b.quantite>0?'':' vide'}">${qte}</span>
+    </div>
+    ${metaBouteille(b)?`<span class="bout-meta">${esc(metaBouteille(b))}</span>`:''}
+    <div class="bout-tags"><span class="tag couleur-${esc(b.couleur)}">${esc(COULEURS[b.couleur]||b.couleur)}</span>${cepages}</div>
+  </button>`;
+}
+function trierCave(q){
+  let l=CAVE.slice();
+  if(FILTRE_COULEUR)l=l.filter(b=>b.couleur===FILTRE_COULEUR);
+  if(q)l=l.filter(b=>sansAccent(b.nom).includes(q)
+    ||sansAccent(b.producteur).includes(q)||sansAccent(b.region).includes(q)
+    ||(b.cepages||[]).some(c=>sansAccent(c).includes(q)));
+  return l.sort((a,b)=>a.nom.localeCompare(b.nom,'fr'));
+}
+function rendreCave(){
+  majSousTitre();
+  tagsCouleur();
+  const q=sansAccent($('qCave').value);
+  const l=trierCave(q);
+  $('grille').innerHTML=l.length?l.map(carteBouteille).join('')
+    :`<p class="vide"><span class="gros">🍷</span>${
+      CAVE.length?'Rien ne correspond à cette recherche.':'La cave est vide.<br>Commence par <b>Ajouter</b>.'}</p>`;
+}
+
+/* ═══════════ détail d'une bouteille ═══════════ */
+function rendreDetail(){
+  const b=trouver(OUVERT);
+  if(!b){setVue('cave');return}
+  const cepages=(b.cepages||[]).map(c=>`<span class="tag">${esc(c)}</span>`).join('');
+  const chiffres=[];
+  if(b.quantite!=null)chiffres.push([b.quantite,'en cave']);
+  if(b.fois_servie)chiffres.push([b.fois_servie,'fois servie']);
+  if(b.prix)chiffres.push(['€ '+b.prix.toFixed(2).replace('.',','),'prix']);
+  if(b.garde)chiffres.push(['↦ '+b.garde,'à boire d\'ici']);
+  $('detCorps').innerHTML=`
+    <h2 class="det-titre">${esc(b.nom)}</h2>
+    ${metaBouteille(b)?`<p class="det-meta">${esc(metaBouteille(b))}${b.pays?' · '+esc(b.pays):''}</p>`:''}
+    <div class="bout-tags"><span class="tag couleur-${esc(b.couleur)}">${esc(COULEURS[b.couleur]||b.couleur)}</span>${cepages}</div>
+    ${chiffres.length?`<div class="det-chiffres">${chiffres.map(([v,l])=>`<div><b>${esc(v)}</b><span>${esc(l)}</span></div>`).join('')}</div>`:''}
+    ${b.note?`<p class="note">${esc(b.note)}</p>`:''}
+    ${b.dernier_service?`<p class="aide">Dernière fois servie : ${esc(b.dernier_service)}</p>`:''}
+    <div class="det-actions">
+      <button type="button" class="btn doux" style="flex:1;min-width:150px" id="detOuvrir" ${b.quantite>0?'':'disabled'}>Ouvrir une bouteille</button>
+      <button type="button" class="btn doux" style="flex:1;min-width:150px" id="detModifier">Modifier</button>
+    </div>
+    <p class="msg" id="detMsg"></p>`;
+}
+
+/* ═══════════ accord mets-vin ═══════════ */
+const PLATS_RAPIDES=['boeuf grille','agneau','fromage de chevre','poisson grille','apero','dessert au chocolat'];
+function rendreAccord(){
+  $('platsRapides').innerHTML=PLATS_RAPIDES.map(p=>
+    `<button type="button" data-plat-rapide="${esc(p)}">${esc(p)}</button>`).join('');
+}
+function chercherPlat(texte){
+  const n=sansAccent(texte);
+  const plats=Object.fromEntries(Object.entries(ACCORDS.plats||{}).map(([k,v])=>[sansAccent(k),v]));
+  if(!n)return [null,null];
+  if(plats[n])return [n,plats[n]];
+  const cand=Object.entries(plats).filter(([k])=>n.includes(k)||k.includes(n));
+  if(cand.length){
+    cand.sort((a,b)=>{
+      const pa=n.indexOf(a[0]), pb=n.indexOf(b[0]);
+      return (pa<0?n.length:pa)-(pb<0?n.length:pb) || b[0].length-a[0].length;
+    });
+    return cand[0];
+  }
+  const mots=new Set(n.replace(/'/g,' ').split(/\s+/).filter(m=>m.length>3));
+  let meilleurCle=null, meilleur=null, score=0;
+  for(const [k,v] of Object.entries(plats)){
+    const c=k.replace(/'/g,' ').split(/\s+/).filter(m=>mots.has(m)).length;
+    if(c>score){meilleurCle=k;meilleur=v;score=c}
+  }
+  return [meilleurCle,meilleur];
+}
+/* même logique que tools/accord.py : couleur idéale d'abord, puis corps le
+   plus proche ; ce qu'il n'y a plus en cave passe en dernier sans disparaître */
+function suggererAccord(texte){
+  const [cle,cible]=chercherPlat(texte);
+  if(!cible)return {cle:null};
+  const score=b=>{
+    let s=cible.couleur.includes(b.couleur)?cible.couleur.indexOf(b.couleur)*0.5:3;
+    s+=Math.abs((b.puissance||PUISSANCE_DEFAUT[b.couleur]||3)-cible.puissance)*0.4;
+    if(!b.quantite)s+=10;
+    return s;
+  };
+  const classement=CAVE.map(b=>({b,s:score(b)})).sort((x,y)=>x.s-y.s).slice(0,5);
+  return {cle,cible,classement};
+}
+function rendreResultatAccord(texte){
+  const zone=$('resultatAccord');
+  if(!CAVE.length){zone.innerHTML=`<p class="vide"><span class="gros">🍷</span>La cave est vide pour l'instant.</p>`;return}
+  const {cle,cible,classement}=suggererAccord(texte);
+  if(!cle){
+    zone.innerHTML=`<p class="vide"><span class="gros">🤷</span>Plat non reconnu.<br>Essaie une description plus simple (« bœuf », « fromage de chèvre », « dessert au chocolat »…).</p>`;
+    return;
+  }
+  zone.innerHTML=`<div class="resultat">
+    <p class="resultat-tete">Pour <b>${esc(texte)}</b> → on cherche du <b>${esc(cle)}</b>, corps ${cible.puissance}/5</p>
+    ${classement.map(({b},i)=>`<div class="rang" data-ouvrir="${esc(b.id)}">
+      <span class="n">${i+1}</span>
+      <div class="corps">
+        <span class="nom">${esc(b.nom)}</span>
+        <span class="meta">${esc(COULEURS[b.couleur]||b.couleur)}${b.millesime?' '+b.millesime:''} · ${b.quantite>0?b.quantite+' en cave':'plus en cave'}</span>
+      </div>
+    </div>`).join('')}
+    <p class="aide">Repères d'accord classiques — la meilleure bouteille reste celle dont on a envie.</p>
+  </div>`;
+}
+
+/* ═══════════ formulaire d'ajout / modification ═══════════ */
+function majCouleur(valeur){
+  document.querySelectorAll('#aCouleur button').forEach(b=>
+    b.setAttribute('aria-pressed',String(b.dataset.couleur===valeur)));
+}
+function remplirForm(b){
+  b=b||{};
+  $('aNom').value=b.nom||'';
+  $('aProducteur').value=b.producteur||'';
+  $('aMillesime').value=b.millesime||'';
+  $('aRegion').value=b.region||'';
+  $('aPays').value=b.pays||'';
+  $('aCepages').value=(b.cepages||[]).join(', ');
+  $('aQuantite').value=b.quantite==null?1:b.quantite;
+  $('aPrix').value=b.prix||'';
+  $('aGarde').value=b.garde||'';
+  $('aNote').value=b.note||'';
+  $('aQui').value=(EDITION?'':b.par)||store.get('prenom','');
+  majCouleur(b.couleur||'rouge');
+}
+function majModeAjout(){
+  const b=EDITION?trouver(EDITION):null;
+  $('aBandeau').hidden=!b;
+  $('aZoneSupp').hidden=!b;
+  $('aSuppMsg').textContent=''; $('aMsg').textContent='';
+  const sup=$('aSupprimer'); if(sup){sup.dataset.sur='';sup.textContent='Supprimer cette bouteille'}
+  $('aEnvoyer').dataset.sur='';
+  if(b){
+    $('aBandeau').innerHTML=`Tu modifies <b>${esc(b.nom)}</b>, ajoutée par ${esc(b.par)}.
+      <button type="button" id="aAnnuler">Annuler</button>`;
+    $('aTitre').textContent='Modifier la bouteille';
+    $('aIntro').textContent='La version corrigée remplace l\'ancienne, chez toi comme chez l\'autre, d\'ici 2 à 3 minutes.';
+    $('aQuiLbl').textContent='Modifiée par';
+    $('aEnvoyer').textContent='Enregistrer les modifications';
+  }else{
+    $('aTitre').textContent='Une nouvelle bouteille';
+    $('aIntro').textContent='Elle rejoint la cave commune : elle apparaîtra sur l\'autre téléphone d\'ici 2 à 3 minutes.';
+    $('aQuiLbl').textContent='Ajoutée par';
+    $('aEnvoyer').textContent='Ajouter à la cave';
+  }
+}
+let AJOUT_PRET=false;
+function rendreAjout(){
+  if(!AJOUT_PRET){AJOUT_PRET=true;remplirForm(store.get('brouillon',null))}
+  majModeAjout();
+}
+function ouvrirEdition(id){
+  const b=trouver(id); if(!b)return;
+  rendreAjout();
+  if(!EDITION)store.set('brouillon-mis-de-cote',lireForm());
+  EDITION=id;
+  remplirForm(b);
+  majModeAjout();
+  setVue('ajout');
+}
+function quitterEdition(retourDetail){
+  if(!EDITION)return;
+  const id=EDITION; EDITION=null;
+  remplirForm(store.get('brouillon-mis-de-cote',null));
+  store.set('brouillon-mis-de-cote',null);
+  majModeAjout();
+  if(retourDetail){OUVERT=id;setVue('detail')}else setVue('cave');
+}
+function sauverBrouillon(){
+  $('aEnvoyer').dataset.sur='';
+  if(!EDITION)store.set('brouillon',lireForm());
+}
+function lireForm(){
+  return {
+    nom:$('aNom').value.trim(),
+    producteur:$('aProducteur').value.trim(),
+    millesime:$('aMillesime').value.trim(),
+    region:$('aRegion').value.trim(),
+    pays:$('aPays').value.trim(),
+    couleur:(document.querySelector('#aCouleur [aria-pressed="true"]')||{dataset:{}}).dataset.couleur||'rouge',
+    cepages:$('aCepages').value.split(',').map(s=>slug(s)).filter(Boolean),
+    quantite:$('aQuantite').value.trim(),
+    prix:$('aPrix').value.trim(),
+    garde:$('aGarde').value.trim(),
+    note:$('aNote').value.trim(),
+    par:$('aQui').value.trim(),
+  };
+}
+/* l'unique chemin d'écriture : /api/robot -> GitHub Actions -> bouteilles/*.json */
+async function poster(bouteille){
+  const corps=JSON.stringify({action:'bouteille',bouteille});
+  const rep=await fetch('/api/robot',{method:'POST',headers:{'Content-Type':'application/json'},body:corps});
+  const d=await rep.json().catch(()=>({}));
+  if(rep.ok&&d.ok)return null;
+  return d.erreur||('erreur '+rep.status);
+}
+async function envoyerBouteille(ev){
+  ev.preventDefault();
+  const b=lireForm(), msg=$('aMsg');
+  msg.className='msg ko';
+  if(!b.nom){msg.textContent='Il manque le nom de la bouteille.';return}
+  if(!b.par){msg.textContent=EDITION?'Mets ton prénom : on note qui a retouché la bouteille.'
+                                     :'Mets ton prénom : il signe la bouteille.';return}
+  store.set('prenom',b.par);
+  if(EDITION){b._op='modifier';b.id=EDITION}
+  msg.className='msg'; msg.textContent='Envoi…';
+  try{
+    const erreur=await poster(b);
+    if(erreur){msg.className='msg ko';msg.textContent='Impossible : '+erreur;return}
+    if(EDITION){
+      OUVERT=EDITION; EDITION=null;
+      remplirForm(store.get('brouillon-mis-de-cote',null));
+      store.set('brouillon-mis-de-cote',null);
+      majModeAjout();
+      msg.className='msg';
+      msg.textContent='✓ Modifiée. La nouvelle version arrive d\'ici 2 à 3 minutes, chez toi comme chez l\'autre.';
+    }else{
+      store.set('brouillon',null);
+      remplirForm(null);
+      msg.textContent='✓ Ajoutée à la cave. Elle apparaîtra d\'ici 2 à 3 minutes, chez toi comme chez l\'autre.';
+    }
+  }catch(e){msg.className='msg ko';msg.textContent='Impossible : pas de réseau ?'}
+}
+async function supprimerBouteille(){
+  const btn=$('aSupprimer'), msg=$('aSuppMsg'), b=EDITION?trouver(EDITION):null;
+  if(!b)return;
+  if(btn.dataset.sur!=='1'){
+    btn.dataset.sur='1';
+    btn.textContent='Appuie encore pour supprimer « '+b.nom+' »';
+    msg.className='msg ko';
+    msg.textContent='Elle partira de la cave de tout le monde. Quitte l\'écran pour annuler.';
+    return;
+  }
+  msg.className='msg'; msg.textContent='Suppression…';
+  try{
+    const erreur=await poster({_op:'supprimer',id:EDITION,par:store.get('prenom','')});
+    if(erreur){msg.className='msg ko';msg.textContent='Impossible : '+erreur;
+      btn.dataset.sur='';btn.textContent='Supprimer cette bouteille';return}
+    EDITION=null; OUVERT=null;
+    remplirForm(store.get('brouillon-mis-de-cote',null));
+    store.set('brouillon-mis-de-cote',null);
+    majModeAjout();
+    setVue('cave');
+    $('aMsg').className='msg';
+    $('aMsg').textContent='✓ « '+b.nom+' » retirée. La cave sera à jour d\'ici 2 à 3 minutes.';
+  }catch(e){msg.className='msg ko';msg.textContent='Impossible : pas de réseau ?';
+    btn.dataset.sur='';btn.textContent='Supprimer cette bouteille'}
+}
+async function ouvrirBouteille(){
+  const b=trouver(OUVERT), msg=$('detMsg');
+  if(!b||!b.quantite)return;
+  msg.className='msg'; msg.textContent='Enregistrement…';
+  try{
+    const erreur=await poster({_op:'ouvrir',id:b.id,n:1});
+    if(erreur){msg.className='msg ko';msg.textContent='Impossible : '+erreur;return}
+    msg.className='msg';
+    msg.textContent='✓ Bouteille ouverte, bonne dégustation ! La cave sera à jour d\'ici 2 à 3 minutes.';
+  }catch(e){msg.className='msg ko';msg.textContent='Impossible : pas de réseau ?'}
+}
+
+/* ═══════════ événements ═══════════ */
+document.addEventListener('click',ev=>{
+  const b=ev.target.closest('button');
+  if(!b)return;
+  if(b.dataset.vue)setVue(b.dataset.vue);
+  else if(b.id==='retour')setVue('cave');
+  else if(b.dataset.ouvrir){OUVERT=b.dataset.ouvrir;setVue('detail')}
+  else if(b.dataset.fc!==undefined){FILTRE_COULEUR=b.dataset.fc||null;rendreCave()}
+  else if(b.dataset.couleur){majCouleur(b.dataset.couleur);sauverBrouillon()}
+  else if(b.dataset.platRapide){$('platTexte').value=b.dataset.platRapide;rendreResultatAccord(b.dataset.platRapide)}
+  else if(b.id==='btnAccord')rendreResultatAccord($('platTexte').value);
+  else if(b.id==='detModifier')ouvrirEdition(OUVERT);
+  else if(b.id==='detOuvrir')ouvrirBouteille();
+  else if(b.id==='aAnnuler')quitterEdition(true);
+  else if(b.id==='aSupprimer')supprimerBouteille();
+});
+document.addEventListener('input',ev=>{
+  if(ev.target.id==='qCave')rendreCave();
+  else if(ev.target.closest('#formBouteille'))sauverBrouillon();
+});
+$('formBouteille').addEventListener('submit',envoyerBouteille);
+$('platTexte').addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();rendreResultatAccord(ev.target.value)}});
+
+/* mémoire du thème choisi à la main (pas de bouton dédié pour l'instant :
+   la préférence système suffit, ce point pourra changer plus tard) */
+setVue('cave');
+$('pied').textContent='Cave à vin · '+new Date().getFullYear();
+</script>
+</body>
+</html>

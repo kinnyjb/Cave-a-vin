@@ -1,0 +1,2 @@
+# Aucune dépendance externe : ajouter_bouteille.py, accord.py et build_appli.py
+# n'utilisent que la bibliothèque standard de Python.
