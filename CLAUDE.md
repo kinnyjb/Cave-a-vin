@@ -165,7 +165,7 @@ que depuis un compte Cloudflare / GitHub, pas depuis cette session :
    projet `cave-appli`, une fois créé) :
    - `GH_TOKEN` — un jeton GitHub fine-grained, permission "Actions: read and write",
      limité à ce dépôt.
-   - `GH_REPO` — `kinnyjb/cave-a-vin`.
+   - `GH_REPO` — `kinnyjb/Cave-a-vin`.
    Sans ces deux variables, `/api/robot` répond une erreur claire à l'écran —
    rien ne casse, mais rien ne s'enregistre non plus.
 3. **Les bouteilles elles-mêmes.** `bouteilles/` est vide au départ : la cave

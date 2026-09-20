@@ -6,7 +6,7 @@
  *
  * Variables à définir dans le projet Cloudflare Pages :
  *   GH_TOKEN  jeton GitHub fine-grained, permission "Actions: read and write"
- *   GH_REPO   "kinnyjb/cave-a-vin"
+ *   GH_REPO   "kinnyjb/Cave-a-vin"
  */
 export async function onRequestPost({ request, env }) {
   const json = (o, s = 200) =>
