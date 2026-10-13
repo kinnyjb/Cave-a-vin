@@ -47,11 +47,14 @@ jobs:
           printf '%s' "$BOUTEILLE" > /tmp/bouteille.json
           python tools/ajouter_bouteille.py --fichier /tmp/bouteille.json
 
+      - name: Construction de l'appli
+        run: python tools/build_appli.py
+
       - name: Enregistrer les nouvelles donnees (AVANT de publier, avec reprise)
         run: |
           git config user.name "Robot Cave"
           git config user.email "robot@cave.local"
-          git add -A bouteilles
+          git add -A
           if git diff --quiet --cached; then echo "rien a enregistrer"; exit 0; fi
           git commit -m "Robot : bouteille $(date -u +%d/%m %H:%M)"
           # deux envois a quelques secondes d'ecart = deux executions parties du meme commit :
@@ -60,13 +63,10 @@ jobs:
             if git push; then exit 0; fi
             echo "push refuse (essai $essai) : on se remet a jour et on reessaie"
             git fetch origin main
-            git rebase origin/main || { git rebase --abort; git reset --hard origin/main; python tools/ajouter_bouteille.py --fichier /tmp/bouteille.json; git add -A bouteilles; git commit -m "Robot : bouteille $(date -u +%d/%m %H:%M)"; }
+            git rebase origin/main || { git rebase --abort; git reset --hard origin/main; python tools/ajouter_bouteille.py --fichier /tmp/bouteille.json; python tools/build_appli.py; git add -A; git commit -m "Robot : bouteille $(date -u +%d/%m %H:%M)"; }
             sleep 3
           done
           echo "::error::impossible d'enregistrer la bouteille apres 5 essais"; exit 1
-
-      - name: Construction de l'appli
-        run: python tools/build_appli.py
 
       - name: Mise en ligne de l'appli
         env:
