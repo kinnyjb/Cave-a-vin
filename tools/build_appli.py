@@ -40,7 +40,8 @@ def construire_cave():
     accords = open(os.path.join(ROOT, "tools", "accords.json"), encoding="utf-8").read()
 
     page = open(src, encoding="utf-8").read()
-    page = (page.replace("/*__BOUTEILLES__*/[]", json.dumps(bouteilles, ensure_ascii=False))
+    # « </ » échappé : un nom de bouteille ne peut pas fermer le <script> de la page
+    page = (page.replace("/*__BOUTEILLES__*/[]", json.dumps(bouteilles, ensure_ascii=False).replace("</", "<\\/"))
                 .replace("/*__ACCORDS__*/{plats:{},cepages:{}}", accords))
     open(os.path.join(dst, "index.html"), "w", encoding="utf-8").write(page)
 

@@ -50,6 +50,6 @@ export async function onRequestPost({ request, env }) {
       message: "Enregistré dans la cave commune. Ça apparaîtra dans l'appli d'ici 2 à 3 minutes.",
     });
 
-  const detail = await r.text();
-  return json({ erreur: `GitHub a répondu ${r.status}`, detail: detail.slice(0, 300) }, 502);
+  console.log("robot : GitHub a répondu", r.status, (await r.text()).slice(0, 300));
+  return json({ erreur: `GitHub a répondu ${r.status}. Réessaie dans un instant.` }, 502);
 }

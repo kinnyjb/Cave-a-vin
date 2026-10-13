@@ -172,13 +172,21 @@ que depuis un compte Cloudflare / GitHub, pas depuis cette session :
    se remplit une bouteille à la fois, à la main ou en photographiant les
    étiquettes.
 
-# 🔒 Ce qui n'est PAS protégé
+# 🔒 La porte — la connexion Google de la famille
 
-**L'appli est ouverte à qui a l'adresse.** Pas de compte, pas de mot de passe :
-n'importe qui peut lire, ajouter, modifier et supprimer une bouteille. Seule
-l'obscurité de l'URL protège la cave — même situation que `kinnyjb/recettes`,
-et la même question reste ouverte : un code de la maison, une lecture libre
-et une écriture protégée, ou rien.
+Depuis le **13/10/2026** (demandé par Jean-Benoît), l'appli est derrière la **porte commune** :
+Cloudflare Access avec la connexion Google (session 30 jours, Face ID via la clé d'accès
+Google), la même que Factures, réglée depuis `kinnyjb/factures-app`, dossier `porte-commune/`
+(« Porte · Cave à vin » : Jean-Benoît, Fanny, JJ, MA, Béné). Avant, l'appli était ouverte à
+qui avait l'adresse — plus maintenant.
+
+- `app/functions/_middleware.js` tourne avant **chaque** requête (page, photos, `/api/robot`) et
+  vérifie le jeton qu'Access ajoute (`app/functions/_lib/identite.js` : signature de l'équipe,
+  AUD de l'appli). Sans personne reconnue : 401, et retour à l'écran Google.
+- Pas de code de secours : l'appli n'en a jamais eu, et le robot n'appelle pas l'adresse.
+- Ajouter ou retirer quelqu'un : dans `porte-commune/applis.json` de Factures, pas ici.
+- `data.qui` (`{ email, name }`) est disponible pour les fonctions : un jour, signer les
+  bouteilles avec, à la place du prénom tapé.
 
 # 🧪 Comment vérifier avant de publier
 
