@@ -35,8 +35,11 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{background:var(--paper);color:var(--ink)}
+/* iOS 26 floute une bande d'environ 24 px sous l'heure et la batterie (iPhone et iPad) : la page commence
+   sous cette bande, donc nette au repos (comme l'appli Charles, 29/10/2026). */
+:root{--haut:calc(env(safe-area-inset-top) + 24px)}
 body{margin:0;font-family:var(--sans);font-size:16px;line-height:1.5;
-     padding-inline:16px;padding-block:calc(env(safe-area-inset-top) + 12px) 48px;
+     padding-inline:16px;padding-block:calc(var(--haut) + 6px) 48px;
      -webkit-font-smoothing:antialiased}
 img{max-width:100%;display:block}[hidden]{display:none!important}
 .wrap{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
